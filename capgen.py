@@ -20,7 +20,8 @@ import os
 import time
 
 from collections import OrderedDict
-from sklearn.cross_validation import KFold
+# from sklearn.cross_validation import KFold
+from sklearn.model_selection import KFold
 
 import warnings
 
