@@ -1,4 +1,5 @@
-import cPickle as pkl
+# import cPickle as pkl
+import pickle as pkl
 import gzip
 import os
 import sys
@@ -65,7 +66,7 @@ def load_data(load_train=True, load_dev=True, load_test=True, path='./'):
     # LOAD DATA #
     #############
 
-    print '... loading data'
+    print('... loading data')
 
     train = None
     valid = None

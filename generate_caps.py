@@ -1,11 +1,12 @@
 """
-Sampling script for attention models
+Sampling script(脚本) for attention models
 
 Works on CPU with support for multi-process
 """
 import argparse
 import numpy
-import cPickle as pkl
+# import cPickle as pkl
+import pickle as pkl
 
 from capgen import build_sampler, gen_sample, \
                    load_params, \
@@ -16,7 +17,7 @@ from capgen import build_sampler, gen_sample, \
 from multiprocessing import Process, Queue
 
 
-# single instance of a sampling process
+# single instance of a sampling process(抽样过程的一个实例）
 def gen_model(queue, rqueue, pid, model, options, k, normalize, word_idict, sampling):
     import theano
     from theano import tensor
@@ -52,7 +53,7 @@ def gen_model(queue, rqueue, pid, model, options, k, normalize, word_idict, samp
             break
 
         idx, context = req[0], req[1]
-        print pid, '-', idx
+        print(pid, '-', idx)
         seq = _gencap(context)
         rqueue.put((idx, seq))
 
@@ -116,7 +117,7 @@ def main(model, saveto, k=5, normalize=False, zero_pad=False, n_process=5, datas
             resp = rqueue.get()
             caps[resp[0]] = resp[1]
             if numpy.mod(idx, 10) == 0:
-                print 'Sample ', (idx+1), '/', n_samples, ' Done'
+                print('Sample ', (idx+1), '/', n_samples, ' Done')
         return caps
 
     ds = datasets.strip().split(',')
@@ -124,19 +125,19 @@ def main(model, saveto, k=5, normalize=False, zero_pad=False, n_process=5, datas
     # send all the features for the various datasets
     for dd in ds:
         if dd == 'dev':
-            print 'Development Set...',
-            _send_jobs(valid[1])
+            print('Development Set...',
+            _send_jobs(valid[1]))
             caps = _seqs2words(_retrieve_jobs(len(valid[1])))
             with open(saveto+'.dev.txt', 'w') as f:
                 print >>f, '\n'.join(caps)
-            print 'Done'
+            print('Done')
         if dd == 'test':
-            print 'Test Set...',
-            _send_jobs(test[1])
+            print('Test Set...',
+            _send_jobs(test[1]))
             caps = _seqs2words(_retrieve_jobs(len(test[1])))
             with open(saveto+'.test.txt', 'w') as f:
                 print >>f, '\n'.join(caps)
-            print 'Done'
+            print('Done')
     # end processes
     for midx in xrange(n_process):
         queue.put(None)

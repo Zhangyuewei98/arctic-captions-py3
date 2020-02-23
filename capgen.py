@@ -13,7 +13,8 @@ import theano
 import theano.tensor as tensor
 from theano.sandbox.rng_mrg import MRG_RandomStreams as RandomStreams
 
-import cPickle as pkl
+# import cPickle as pkl
+import pickle as pkl
 import numpy
 import copy
 import os
@@ -37,6 +38,7 @@ import flickr30k
 import coco
 
 
+# define a dictionary named datasets
 # datasets: 'name', 'load_data: returns iterator', 'prepare_data: some preprocessing'
 datasets = {'flickr8k': (flickr8k.load_data, flickr8k.prepare_data),
             'flickr30k': (flickr30k.load_data, flickr30k.prepare_data),
@@ -753,9 +755,9 @@ def build_sampler(tparams, options, use_noise, trng, sampling=True):
             init_state.append(get_layer('ff')[1](tparams, ctx_mean, options, prefix='ff_state_%d'%lidx, activ='tanh'))
             init_memory.append(get_layer('ff')[1](tparams, ctx_mean, options, prefix='ff_memory_%d'%lidx, activ='tanh'))
 
-    print 'Building f_init...',
-    f_init = theano.function([ctx], [ctx]+init_state+init_memory, name='f_init', profile=False)
-    print 'Done'
+    print('Building f_init...',
+    f_init = theano.function([ctx], [ctx]+init_state+init_memory, name='f_init', profile=False))
+    print('Done')
 
     # build f_next
     ctx = tensor.matrix('ctx_sampler', dtype='float32')
@@ -1035,7 +1037,7 @@ def pred_probs(f_log_probs, options, worddict, prepare_data, data, iterator, ver
 
         n_done += len(valid_index)
         if verbose:
-            print '%d/%d samples computed'%(n_done,n_samples)
+            print('%d/%d samples computed'%(n_done,n_samples))
 
     return probs
 
@@ -1108,14 +1110,14 @@ def train(dim_word=100,  # word vector dimensionality
 
     # reload options
     if reload_ and os.path.exists(saveto):
-        print "Reloading options"
+        print("Reloading options")
         with open('%s.pkl'%saveto, 'rb') as f:
             model_options = pkl.load(f)
 
-    print "Using the following parameters:"
-    print  model_options
+    print("Using the following parameters:")
+    print(model_options)
 
-    print 'Loading data'
+    print('Loading data')
     load_data, prepare_data = get_dataset(dataset)
     train, valid, test, worddict = load_data()
 
@@ -1128,10 +1130,10 @@ def train(dim_word=100,  # word vector dimensionality
 
     # Initialize (or reload) the parameters using 'model_options'
     # then build the Theano graph
-    print 'Building model'
+    print('Building model')
     params = init_params(model_options)
     if reload_ and os.path.exists(saveto):
-        print "Reloading model"
+        print("Reloading model")
         params = load_params(saveto, params)
 
     # numpy arrays -> theano shared variables
@@ -1153,7 +1155,7 @@ def train(dim_word=100,  # word vector dimensionality
     # To sample, we use beam search: 1) f_init is a function that initializes
     # the LSTM at time 0 [see top right of page 4], 2) f_next returns the distribution over
     # words and also the new "initial state/memory" see equation
-    print 'Buliding sampler'
+    print('Buliding sampler')
     f_init, f_next = build_sampler(tparams, model_options, use_noise, trng)
 
     # we want the cost without any the regularizers
@@ -1213,7 +1215,7 @@ def train(dim_word=100,  # word vector dimensionality
     lr = tensor.scalar(name='lr')
     f_grad_shared, f_update = eval(optimizer)(lr, tparams, grads, inps, cost, hard_attn_updates)
 
-    print 'Optimization'
+    print('Optimization')
 
     # [See note in section 4.3 of paper]
     train_iter = HomogeneousData(train, batch_size=batch_size, maxlen=maxlen)
@@ -1243,7 +1245,7 @@ def train(dim_word=100,  # word vector dimensionality
     for eidx in xrange(max_epochs):
         n_samples = 0
 
-        print 'Epoch ', eidx
+        print('Epoch ', eidx)
 
         for caps in train_iter:
             n_samples += len(caps)
@@ -1262,7 +1264,7 @@ def train(dim_word=100,  # word vector dimensionality
             pd_duration = time.time() - pd_start
 
             if x is None:
-                print 'Minibatch with zero sample under length ', maxlen
+                print('Minibatch with zero sample under length ', maxlen)
                 continue
 
             # get the cost for the minibatch, and update the weights
@@ -1273,15 +1275,15 @@ def train(dim_word=100,  # word vector dimensionality
 
             # Numerical stability check
             if numpy.isnan(cost) or numpy.isinf(cost):
-                print 'NaN detected'
+                print('NaN detected')
                 return 1., 1., 1.
 
             if numpy.mod(uidx, dispFreq) == 0:
-                print 'Epoch ', eidx, 'Update ', uidx, 'Cost ', cost, 'PD ', pd_duration, 'UD ', ud_duration
+                print('Epoch ', eidx, 'Update ', uidx, 'Cost ', cost, 'PD ', pd_duration, 'UD ', ud_duration)
 
             # Checkpoint
             if numpy.mod(uidx, saveFreq) == 0:
-                print 'Saving...',
+                print('Saving...',)
 
                 if best_p is not None:
                     params = copy.copy(best_p)
@@ -1289,7 +1291,7 @@ def train(dim_word=100,  # word vector dimensionality
                     params = unzip(tparams)
                 numpy.savez(saveto, history_errs=history_errs, **params)
                 pkl.dump(model_options, open('%s.pkl'%saveto, 'wb'))
-                print 'Done'
+                print('Done')
 
             # Print a generated sample as a sanity check
             if numpy.mod(uidx, sampleFreq) == 0:
@@ -1303,24 +1305,24 @@ def train(dim_word=100,  # word vector dimensionality
                     sample, score = gen_sample(tparams, f_init, f_next, ctx_s[jj], model_options,
                                                trng=trng, k=5, maxlen=30, stochastic=False)
                     # Decode the sample from encoding back to words
-                    print 'Truth ',jj,': ',
+                    print('Truth ',jj,': ',)
                     for vv in x_s[:,jj]:
                         if vv == 0:
                             break
                         if vv in word_idict:
-                            print word_idict[vv],
+                            print(word_idict[vv],)
                         else:
-                            print 'UNK',
+                            print('UNK',)
                     print
                     for kk, ss in enumerate([sample[0]]):
-                        print 'Sample (', kk,') ', jj, ': ',
+                        print('Sample (', kk,') ', jj, ': ',)
                         for vv in ss:
                             if vv == 0:
                                 break
                             if vv in word_idict:
-                                print word_idict[vv],
+                                print(word_idict[vv],)
                             else:
-                                print 'UNK',
+                                print('UNK',)
                     print
 
             # Log validation loss + checkpoint the model with the best validation log likelihood
@@ -1340,7 +1342,7 @@ def train(dim_word=100,  # word vector dimensionality
                 # the model with the best validation long likelihood is saved seperately with a different name
                 if uidx == 0 or valid_err <= numpy.array(history_errs)[:,0].min():
                     best_p = unzip(tparams)
-                    print 'Saving model with best validation ll'
+                    print('Saving model with best validation ll')
                     params = copy.copy(best_p)
                     params = unzip(tparams)
                     numpy.savez(saveto+'_bestll', history_errs=history_errs, **params)
@@ -1350,13 +1352,13 @@ def train(dim_word=100,  # word vector dimensionality
                 if eidx > patience and len(history_errs) > patience and valid_err >= numpy.array(history_errs)[:-patience,0].min():
                     bad_counter += 1
                     if bad_counter > patience:
-                        print 'Early Stop!'
+                        print('Early Stop!')
                         estop = True
                         break
 
-                print 'Train ', train_err, 'Valid ', valid_err, 'Test ', test_err
+                print('Train ', train_err, 'Valid ', valid_err, 'Test ', test_err)
 
-        print 'Seen %d samples' % n_samples
+        print('Seen %d samples' % n_samples)
 
         if estop:
             break
@@ -1377,7 +1379,7 @@ def train(dim_word=100,  # word vector dimensionality
     if test:
         test_err = -pred_probs(f_log_probs, model_options, worddict, prepare_data, test, kf_test)
 
-    print 'Train ', train_err, 'Valid ', valid_err, 'Test ', test_err
+    print('Train ', train_err, 'Valid ', valid_err, 'Test ', test_err)
 
     params = copy.copy(best_p)
     numpy.savez(saveto, zipped_params=best_p, train_err=train_err,

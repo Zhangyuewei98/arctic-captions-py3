@@ -22,7 +22,7 @@ parser.add_argument("references", type=argparse.FileType('r'), nargs="+",
 
 
 def load_textfiles(references, hypothesis):
-    print "The number of references is {}".format(len(references))
+    print("The number of references is {}".format(len(references)))
     hypo = {idx: [lines.strip()] for (idx, lines) in enumerate(hypothesis)}
     # take out newlines before creating dictionary
     raw_refs = [map(str.strip, r) for r in zip(*references)]
@@ -60,4 +60,4 @@ if __name__ == '__main__':
     logger = logging.getLogger('Computing Metrics:')
     args = parser.parse_args()
     ref, hypo = load_textfiles(args.references, args.hypothesis)
-    print score(ref, hypo)
+    print(score(ref, hypo))

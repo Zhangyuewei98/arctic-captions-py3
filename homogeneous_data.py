@@ -1,7 +1,9 @@
+# [see Section (4.3) for explanation]
+
 import numpy
 import copy
 
-
+# homogeneous   adj.同性质的，同类的，齐次的，均匀的
 class HomogeneousData():
     def __init__(self, data, batch_size=128, maxlen=None):
         self.batch_size = 128
